@@ -16,7 +16,7 @@ CXX			= g++
 CXXFLAGS	= -Wall -Werror -Wextra
 
 INC			= -I include
-SRC			= main.cpp 
+SRC			= main.cpp instructionsClass.cpp
 OBJ			= $(SRC:%.cpp=obj/%.o)
 
 all: $(NAME)
