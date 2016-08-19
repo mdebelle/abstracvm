@@ -58,9 +58,8 @@ void			instructions::defineInstruction(void)
 		|| checkSimpleAction("mul", str) == 1
 		|| checkSimpleAction("div", str) == 1
 		|| checkSimpleAction("mod", str) == 1
-		|| checkSimpleAction("print", str) == 1) {
-		_valid = true;
-	} else if (checkSimpleAction("exit", str) == 1)
+		|| checkSimpleAction("print", str) == 1);
+	else if (checkSimpleAction("exit", str) == 1)
 		_exit = true;
 }
 
@@ -154,16 +153,24 @@ bool	instructions::checkSimpleAction(std::string action, std::string str)
 
 int		instructions::checkActionValue(std::string comp, std::string str)
 {
-	std::size_t found = str.find(" ");
 
-	if (found < str.length())
+	if (str.compare(0, comp.length(), comp) == 0)
 	{
-		std::string action = str.substr(0, found);
-		if (action.compare(comp) == 0)
+		std::size_t found = str.find(" ");
+
+		if (found < str.length())
 		{
-			std::string value = str.substr(found);
-			return (1);
+			std::string action = str.substr(0, found);
+			if (action.compare(comp) == 0)
+			{
+				std::string value = str.substr(found);
+				_valid = true;
+				return (1);
+			}
 		}
+		_error = "Line " + std::to_string(_number) + ": Error : The assembly program includes one or several lexical errors or syntactic errors.";
+		_valid = false;
+		return (1);
 	}
 	return (2);
 }
