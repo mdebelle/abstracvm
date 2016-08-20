@@ -21,14 +21,18 @@ class instructions {
 		bool			_exit;
 		std::string		_error;
 		std::string		_type;
+		std::string		_value;
 
 		void			defineInstruction();
 		bool			checkComment(std::string comp, std::string str, void (*f)(std::string));
+		bool			checkValue(std::string str);
 		bool			checkSimpleAction(std::string action, std::string str);
 		int				checkActionValue(std::string comp, std::string str);
 		std::string		splitcomment(std::string sep, std::string str);
 		int				actionPush(std::string val);
 		int				actionAssert(std::string val);
+		bool			setType(std::string);
+		bool			setValue(std::string);
 
 	public:
 		instructions(std::string line, int number);

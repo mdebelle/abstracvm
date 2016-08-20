@@ -48,8 +48,9 @@ void			instructions::defineInstruction(void)
 	std::string str = _line;
 	trim(str);
 	str = splitcomment(";", str);
-	if (str.empty()
-		|| checkActionValue("push", str) == 1
+	if (str.empty())
+		_valid = true;
+	else if (checkActionValue("push", str) == 1
 		|| checkActionValue("assert", str) == 1
 		|| checkSimpleAction("pop", str) == 1
 		|| checkSimpleAction("dump", str) == 1
@@ -151,6 +152,72 @@ bool	instructions::checkSimpleAction(std::string action, std::string str)
 	return false;
 }
 
+bool		instructions::setType(std::string str)
+{
+	if (str.compare("int8") == 0
+		|| str.compare("int16") == 0
+		|| str.compare("int32") == 0
+		|| str.compare("float") == 0
+		|| str.compare("double") == 0)
+	{
+		_type = str;
+		return true;
+	}
+	return false;
+}
+
+bool		instructions::setValue(std::string str)
+{
+
+	bool	virgule = false;
+
+	if (_type.compare("float") == 0 || _type.compare("double") == 0)
+	{
+		for (size_t i = 0; i < str.length(); ++i)
+		{
+			if (i == 0 && str[i] == '-')
+				continue ;
+			if (!isdigit(str[i]) && str[i] != '.')
+				return false;
+			else if (str[i] == '.')
+			{
+				if (!virgule)
+					virgule = true;
+				else
+					return false;
+			}
+		}
+	}
+	else
+	{
+		for (size_t i = 0; i < str.length(); ++i)
+		{
+			if (i == 0 && str[i] == '-')
+				continue ;
+			if (!isdigit(str[i]))
+				return false;
+		}
+	}
+	_value = str;
+	return true;
+}
+
+
+bool		instructions::checkValue(std::string str)
+{
+	std::size_t foundone = str.find("(");
+	std::size_t foundtwo = str.find_last_of(")");
+	if (foundone < str.length() && foundtwo < str.length())
+	{
+		std::string type = str.substr(0,foundone);
+		std::string value = str.substr(foundone+1, foundtwo - (foundone+1));
+		if (!setType(type) || !setValue(value))
+			return false;
+		return true;
+	}
+	return false;
+}
+
 int		instructions::checkActionValue(std::string comp, std::string str)
 {
 
@@ -164,8 +231,9 @@ int		instructions::checkActionValue(std::string comp, std::string str)
 			if (action.compare(comp) == 0)
 			{
 				std::string value = str.substr(found);
-				_valid = true;
-				return (1);
+				_valid = checkValue(trim(value));
+				if (_valid)
+					return (1);
 			}
 		}
 		_error = "Line " + std::to_string(_number) + ": Error : The assembly program includes one or several lexical errors or syntactic errors.";
