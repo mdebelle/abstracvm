@@ -10,11 +10,18 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-typedef enum	OperandType
+
+#ifndef EOPERANDTYPE_HPP
+# define EOPERANDTYPE_HPP
+
+enum	eOperandType
 {
 	INT8,
 	INT16,
 	INT32,
 	FLOAT,
-	DOUBLE
-}				eOperandType;
+	DOUBLE,
+	INVALID,
+};
+
+#endif

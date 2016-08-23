@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "instructionsClass.hpp"
+#include "eOperandType.hpp"
 
 
 static std::string &ltrim(std::string &s) {
@@ -32,10 +33,11 @@ static std::string &trim(std::string &s) {
 instructions::instructions(std::string line, int number)
 {
 	_line = line;
-	_number = number;
+	_lineNumber = number;
 	_exit = false;
 	_valid = false;
-	defineInstruction();
+	setActionsMap();
+	ParseInstruction();
 	return ;
 }
 instructions::~instructions(void)
@@ -43,78 +45,31 @@ instructions::~instructions(void)
 	return ;
 }
 
-void			instructions::defineInstruction(void)
+void						instructions::ParseInstruction()
 {
-	std::string str = _line;
+	std::string				str = _line;
 	trim(str);
-	str = splitcomment(";", str);
+	str = SplitComment(";", str);
 	if (str.empty())
 		_valid = true;
-	else if (checkActionValue("push", str) == 1
-		|| checkActionValue("assert", str) == 1
-		|| checkSimpleAction("pop", str) == 1
-		|| checkSimpleAction("dump", str) == 1
-		|| checkSimpleAction("add", str) == 1
-		|| checkSimpleAction("sub", str) == 1
-		|| checkSimpleAction("mul", str) == 1
-		|| checkSimpleAction("div", str) == 1
-		|| checkSimpleAction("mod", str) == 1
-		|| checkSimpleAction("print", str) == 1);
-	else if (checkSimpleAction("exit", str) == 1)
+	else if (isActionValue("push", str)
+		|| isActionValue("assert", str)
+		|| isSimpleAction("pop", str)
+		|| isSimpleAction("dump", str)
+		|| isSimpleAction("add", str)
+		|| isSimpleAction("sub", str)
+		|| isSimpleAction("mul", str)
+		|| isSimpleAction("div", str)
+		|| isSimpleAction("mod", str)
+		|| isSimpleAction("print", str))
+		;
+	else if (isSimpleAction("exit", str))
 		_exit = true;
 }
 
-bool			instructions::exitLoop(bool exit)
+bool						instructions::IsComment(std::string comp, std::string str, void (*f)(std::string))
 {
-	std::string str = _line;
-	trim(str);
-
-	if (str.compare(";;") == 0)
-	{
-		if (exit == false)
-		{
-			_valid = false;
-			_error = "Line " + std::to_string(_number) + ": Error : The program doesn’t have an exit instruction";
-		}
-		return true;
-	}
-	return false;
-}
-
-std::string		instructions::getLine(void) const
-{
-	return _line ;
-}
-
-int				instructions::getNumber(void) const
-{
-	return _number;
-}
-
-bool			instructions::getValid(void) const
-{
-	return  _valid;
-}
-
-bool			instructions::getExit(void) const
-{
-	return  _exit;
-}
-
-std::string		instructions::getError(void) const
-{
-	return _error;
-}
-
-std::string		instructions::getType(void) const
-{
-	return _type;
-}
-
-
-bool	instructions::checkComment(std::string comp, std::string str, void (*f)(std::string))
-{
-	std::size_t found = str.find(comp);
+	std::size_t				found = str.find(comp);
 
 	if (found <= str.length())
 	{
@@ -124,35 +79,215 @@ bool	instructions::checkComment(std::string comp, std::string str, void (*f)(std
 	return false;
 }
 
-
-int	instructions::actionPush(std::string val)
+std::string					instructions::SplitComment(std::string sep, std::string str)
 {
-	std::cout << "this is a Push line. Value is " << val << std::endl;
-	return 1;
+	std::size_t				pos = str.find(sep);
+	if (pos < str.length())
+	{
+		std::string	ret = str.substr(0,pos);
+		return trim(ret);
+	}
+	return str;
 }
 
-
-int	instructions::actionAssert(std::string val)
+bool						instructions::isValue(std::string str)
 {
-	std::cout << "this is a Assert line. Value is " << val << std::endl;
-	return 1;
+	std::size_t				foundone = str.find("(");
+	std::size_t				foundtwo = str.find_last_of(")");
+	if (foundone < str.length() && foundtwo < str.length())
+	{
+		std::string			type = str.substr(0, foundone);
+		std::string 		value = str.substr(foundone+1, foundtwo - (foundone+1));
+		if (!setTypes(type) || !setValues(value))
+			return false;
+		return true;
+	}
+	return false;
 }
-
-
-bool	instructions::checkSimpleAction(std::string action, std::string str)
+bool						instructions::isSimpleAction(std::string action, std::string str)
 {
 	if (action.compare(str) == 0)
 	{
 		_valid = true;
-		_type = action;
+		_action = action;
 		return true;
 	}
 	_valid = false;
-	_error = "Line " + std::to_string(_number) + ": Error : An instruction is unknown";
+	_error = "Line " + std::to_string(_lineNumber) + ": Error : An instruction is unknown";
 	return false;
 }
 
-bool		instructions::setType(std::string str)
+bool						instructions::isActionValue(std::string comp, std::string str)
+{
+	if (str.compare(0, comp.length(), comp) == 0)
+	{
+		std::size_t			found = str.find(" ");
+		if (found < str.length())
+		{
+			_action = str.substr(0, found);
+			if (_action.compare(comp) == 0)
+			{
+				std::string	value = str.substr(found);
+				_valid = isValue(trim(value));
+				if (_valid)
+					return true;
+			}
+		}
+		_error = "Line " + std::to_string(_lineNumber) + ": Error : The assembly program includes one or several lexical errors or syntactic errors.";
+		_valid = false;
+		return true;
+	}
+	return false;
+}
+
+void						instructions::ActionPush(void)
+{
+	return ;
+}
+void						instructions::ActionPop(void)
+{
+	return ;
+}
+void						instructions::ActionDump(void)
+{
+	return ;
+}
+void						instructions::ActionAssert(void)
+{
+	return ;
+}
+void						instructions::ActionAdd(void)
+{
+	return ;
+}
+void						instructions::ActionSub(void)
+{
+	return ;
+}
+void						instructions::ActionMul(void)
+{
+	return ;
+}
+void						instructions::ActionDiv(void)
+{
+	return ;
+}
+void						instructions::ActionMod(void)
+{
+	return ;
+}
+void						instructions::ActionPrint(void)
+{
+	return ;
+}
+void						instructions::ActionExit(void)
+{
+	return ;
+}
+
+		
+bool						instructions::ExitLoop(bool exit)
+{
+	std::string				str = _line;
+	trim(str);
+	if (str.compare(";;") == 0)
+	{
+		if (exit == false)
+		{
+			_valid = false;
+			_error = "Line " + std::to_string(_lineNumber) + ": Error : The program doesn’t have an exit instruction";
+		}
+		return true;
+	}
+	return false;
+}
+
+std::vector<instructions> 	instructions::Execute(std::vector<instructions> lst)
+{
+	for (std::vector<instructions>::iterator i = lst.begin(); i != lst.end(); ++i)
+	{
+		if (getLineNumber() == i->getLineNumber())
+		{
+			action_map::const_iterator iter = _m.find(i->getAction());
+			if (iter == _m.end())
+			{
+				std::cerr << "oups" << std::endl;
+			} else {
+				(this->*iter->second)();
+			}
+			std::cout << i->getOut();
+			return lst;
+		}
+	}
+	return lst;
+}
+
+eOperandType				instructions::ConvertStringToType(std::string str)
+{
+	if (str.compare("int8") == 0)
+		return INT8;
+	if (str.compare("int16") == 0)
+		return INT16;
+	if (str.compare("int32") == 0)
+		return INT32;
+	if (str.compare("float") == 0)
+		return FLOAT;
+	if (str.compare("double") == 0)
+		return DOUBLE;
+	return INVALID;
+}
+
+int		 					instructions::ConvertTypeToPrecision(eOperandType eOp)
+{
+	switch (eOp) {
+		case INT8:
+			return 1;
+		case INT16:
+			return 2;
+		case INT32:
+			return 3;
+		case FLOAT:
+			return 4;
+		case DOUBLE:
+			return 5;
+		case INVALID:
+			return -1;
+	}
+	return -1;
+}
+
+std::string					instructions::getLine(void) const { return _line; }
+int							instructions::getLineNumber(void) const { return _lineNumber; }
+bool						instructions::getExit(void) const { return _exit; }
+bool						instructions::getValid(void) const { return _valid; }
+std::string					instructions::getError(void) const { return _error; }
+std::string					instructions::getOut(void) const { return _out; }
+std::string					instructions::getAction(void) const { return _action; }
+std::string					instructions::getStype(void) const { return _stype; }
+eOperandType				instructions::getType(void) const { return _type; }
+int							instructions::getPrecision(void) const { return _precision; }		
+std::string					instructions::getSvalue(void) const { return _svalue; }
+int							instructions::getIvalue(void) const { return _ivalue; }
+float						instructions::getFvalue(void) const { return _fvalue; }
+double						instructions::getDvalue(void) const { return _dvalue; }
+instructions::action_map	instructions::getM(void) const { return _m; }
+
+void						instructions::setActionsMap(void)
+{
+	_m.insert(std::make_pair("push", &instructions::ActionPush));
+	_m.insert(std::make_pair("pop", &instructions::ActionPop));
+	_m.insert(std::make_pair("dump", &instructions::ActionDump));
+	_m.insert(std::make_pair("assert", &instructions::ActionAssert));
+	_m.insert(std::make_pair("add", &instructions::ActionAdd));
+	_m.insert(std::make_pair("sub", &instructions::ActionSub));
+	_m.insert(std::make_pair("mul", &instructions::ActionMul));
+	_m.insert(std::make_pair("div", &instructions::ActionDiv));
+	_m.insert(std::make_pair("mod", &instructions::ActionMod));
+	_m.insert(std::make_pair("print", &instructions::ActionPrint));
+	_m.insert(std::make_pair("exit", &instructions::ActionExit));
+}
+
+bool						instructions::setTypes(std::string str)
 {
 	if (str.compare("int8") == 0
 		|| str.compare("int16") == 0
@@ -160,18 +295,19 @@ bool		instructions::setType(std::string str)
 		|| str.compare("float") == 0
 		|| str.compare("double") == 0)
 	{
-		_type = str;
+		_stype = str;
+		_type = ConvertStringToType(str);
+		_precision = ConvertTypeToPrecision(_type);
 		return true;
 	}
 	return false;
 }
 
-bool		instructions::setValue(std::string str)
+bool						instructions::setValues(std::string str)
 {
+	bool					virgule = false;
 
-	bool	virgule = false;
-
-	if (_type.compare("float") == 0 || _type.compare("double") == 0)
+	if (_stype.compare("float") == 0 || _stype.compare("double") == 0)
 	{
 		for (size_t i = 0; i < str.length(); ++i)
 		{
@@ -198,60 +334,7 @@ bool		instructions::setValue(std::string str)
 				return false;
 		}
 	}
-	_value = str;
+	_svalue = str;
 	return true;
-}
-
-
-bool		instructions::checkValue(std::string str)
-{
-	std::size_t foundone = str.find("(");
-	std::size_t foundtwo = str.find_last_of(")");
-	if (foundone < str.length() && foundtwo < str.length())
-	{
-		std::string type = str.substr(0,foundone);
-		std::string value = str.substr(foundone+1, foundtwo - (foundone+1));
-		if (!setType(type) || !setValue(value))
-			return false;
-		return true;
-	}
-	return false;
-}
-
-int		instructions::checkActionValue(std::string comp, std::string str)
-{
-
-	if (str.compare(0, comp.length(), comp) == 0)
-	{
-		std::size_t found = str.find(" ");
-
-		if (found < str.length())
-		{
-			std::string action = str.substr(0, found);
-			if (action.compare(comp) == 0)
-			{
-				std::string value = str.substr(found);
-				_valid = checkValue(trim(value));
-				if (_valid)
-					return (1);
-			}
-		}
-		_error = "Line " + std::to_string(_number) + ": Error : The assembly program includes one or several lexical errors or syntactic errors.";
-		_valid = false;
-		return (1);
-	}
-	return (2);
-}
-
-std::string	instructions::splitcomment(std::string sep, std::string str)
-{
-	std::size_t pos = str.find(sep);
-
-	if (pos < str.length())
-	{
-		std::string ret = str.substr(0,pos);
-		return trim(ret);
-	}
-	return str;
 }
 
