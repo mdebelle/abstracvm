@@ -140,48 +140,72 @@ bool						instructions::isActionValue(std::string comp, std::string str)
 	return false;
 }
 
-void						instructions::ActionPush(void)
+void						instructions::ActionPush(std::vector<instructions> v)
 {
+	v = v;
 	return ;
 }
-void						instructions::ActionPop(void)
+void						instructions::ActionPop(std::vector<instructions> v)
 {
+	v = v;
 	return ;
 }
-void						instructions::ActionDump(void)
+
+/*
+ *	Displays each value of the stack, from the most recent one to the oldest one
+ *	WITHOUT CHANGING the stack.
+ *	Each value is separated from the next one by a newline.
+*/
+void						instructions::ActionDump(std::vector<instructions> v)
 {
+	for (std::vector<instructions>::iterator i = v.begin(); i != v.end(); ++i)
+	{
+		if (i->getLineNumber() < getLineNumber())
+		{
+			if (!i->getSvalue().empty())
+				_out = i->getSvalue() + "\n" + _out;
+		}
+	}
 	return ;
 }
-void						instructions::ActionAssert(void)
+void						instructions::ActionAssert(std::vector<instructions> v)
 {
+	v = v;
 	return ;
 }
-void						instructions::ActionAdd(void)
+void						instructions::ActionAdd(std::vector<instructions> v)
 {
+	v = v;
 	return ;
 }
-void						instructions::ActionSub(void)
+void						instructions::ActionSub(std::vector<instructions> v)
 {
+	v = v;
 	return ;
 }
-void						instructions::ActionMul(void)
+void						instructions::ActionMul(std::vector<instructions> v)
 {
+	v = v;
 	return ;
 }
-void						instructions::ActionDiv(void)
+void						instructions::ActionDiv(std::vector<instructions> v)
 {
+	v = v;
 	return ;
 }
-void						instructions::ActionMod(void)
+void						instructions::ActionMod(std::vector<instructions> v)
 {
+	v = v;
 	return ;
 }
-void						instructions::ActionPrint(void)
+void						instructions::ActionPrint(std::vector<instructions> v)
 {
+	v = v;
 	return ;
 }
-void						instructions::ActionExit(void)
+void						instructions::ActionExit(std::vector<instructions> v)
 {
+	v = v;
 	return ;
 }
 
@@ -213,9 +237,9 @@ std::vector<instructions> 	instructions::Execute(std::vector<instructions> lst)
 			{
 				std::cerr << "oups" << std::endl;
 			} else {
-				(this->*iter->second)();
+				(this->*iter->second)(lst);
 			}
-			std::cout << i->getOut();
+			std::cout << getOut();
 			return lst;
 		}
 	}

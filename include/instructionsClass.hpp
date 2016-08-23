@@ -36,7 +36,7 @@ class instructions {
 		float									_fvalue;
 		double									_dvalue;
 
-		typedef void							(instructions::*Action)(void);
+		typedef void							(instructions::*Action)(std::vector<instructions>);
 		typedef std::map<std::string, Action>	action_map;
 
 		action_map								_m;
@@ -84,17 +84,17 @@ class instructions {
 		bool									setTypes(std::string);
 		bool									setValues(std::string);
 
-		void									ActionPush(void);
-		void									ActionPop(void);
-		void									ActionDump(void);
-		void									ActionAssert(void);
-		void									ActionAdd(void);
-		void									ActionSub(void);
-		void									ActionMul(void);
-		void									ActionDiv(void);
-		void									ActionMod(void);
-		void									ActionPrint(void);
-		void									ActionExit(void);
+		void									ActionPush(std::vector<instructions>);
+		void									ActionPop(std::vector<instructions>);
+		void									ActionDump(std::vector<instructions>);
+		void									ActionAssert(std::vector<instructions>);
+		void									ActionAdd(std::vector<instructions>);
+		void									ActionSub(std::vector<instructions>);
+		void									ActionMul(std::vector<instructions>);
+		void									ActionDiv(std::vector<instructions>);
+		void									ActionMod(std::vector<instructions>);
+		void									ActionPrint(std::vector<instructions>);
+		void									ActionExit(std::vector<instructions>);
 
 
 };
