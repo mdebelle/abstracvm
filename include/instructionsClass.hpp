@@ -36,6 +36,8 @@ class instructions {
 		float									_fvalue;
 		double									_dvalue;
 
+		std::vector<Num>						currentStack;
+
 		typedef void							(instructions::*Action)(std::vector<instructions>);
 		typedef std::map<std::string, Action>	action_map;
 

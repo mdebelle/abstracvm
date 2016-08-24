@@ -152,8 +152,7 @@ void						instructions::ActionPop(std::vector<instructions> v)
 }
 
 /*
- *	Displays each value of the stack, from the most recent one to the oldest one
- *	WITHOUT CHANGING the stack.
+ *	Displays each value of the stack, from the most recent one to the oldest one WITHOUT CHANGING the stack.
  *	Each value is separated from the next one by a newline.
 */
 void						instructions::ActionDump(std::vector<instructions> v)
@@ -168,9 +167,26 @@ void						instructions::ActionDump(std::vector<instructions> v)
 	}
 	return ;
 }
+
+/*
+ *	Asserts that the value at the top of the stack is equal to the one passed as parameter for this instruction.
+ *	If it is not the case, the program execution must stop with an error.
+ *	The value v has the same form that those passed as parameters to the instruction push
+*/
 void						instructions::ActionAssert(std::vector<instructions> v)
 {
-	v = v;
+	for (std::vector<instructions>::iterator i = v.end(); i != v.begin(); --i)
+	{
+		if (i->getLineNumber() < getLineNumber())
+		{
+			if (!i->getSvalue().empty())
+			{
+				if (i->getSvalue() == getSvalue())
+				else 
+					return // Stop
+			}
+		}
+	}
 	return ;
 }
 void						instructions::ActionAdd(std::vector<instructions> v)
