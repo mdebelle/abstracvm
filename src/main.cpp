@@ -33,19 +33,31 @@ void	fileArgument(char **argv)
 	std::string					filename(argv[1]);
 	std::ifstream				avmfile(filename);
 	std::vector<instructions>	v;
+	std::vector<Num> 			vNum;
 
 	if (avmfile.is_open())
-		while(getline(avmfile,line))
+	{	while(getline(avmfile,line))
 		{
 			count++;
 			v.push_back(instructions(line, count));
 		}
+	}
 	for (std::vector<instructions>::iterator i = v.begin(); i != v.end(); ++i)
 	{
 		if (!i->getValid())
+		{
 			std::cout << i->getError() << std::endl;
+			return ;
+		}
 		else
-			i->Execute(v);
+		{
+			vNum = i->Execute(vNum);
+			if (!i->getValid())
+			{
+				std::cout << i->getError() << std::endl;
+				return ;
+			}
+		}
 	}
 	return ;
 }

@@ -10,9 +10,13 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#ifndef INSTRUCTIONS_HPP
+# define INSTRUCTIONS_HPP
+
 #include <iostream>
 #include <vector>
 #include <map>
+#include "NumClass.hpp"
 #include "eOperandType.hpp"
 
 class instructions {
@@ -36,9 +40,9 @@ class instructions {
 		float									_fvalue;
 		double									_dvalue;
 
-		std::vector<Num>						currentStack;
+		std::vector<Num>						_currentStack;
 
-		typedef void							(instructions::*Action)(std::vector<instructions>);
+		typedef void							(instructions::*Action)(std::vector<Num>);
 		typedef std::map<std::string, Action>	action_map;
 
 		action_map								_m;
@@ -59,9 +63,14 @@ class instructions {
 		~instructions();
 		
 		bool									ExitLoop(bool exit);
-		std::vector<instructions> 				Execute(std::vector<instructions> lst);
+		std::vector<Num>						Execute(std::vector<Num>);
+		bool									isStackEnought(std::vector<Num>);
+		bool									isinlimits(std::vector<Num>);
+		void									setErrorLimits(std::string);
+		void									setErrorZero(void);
 		eOperandType							ConvertStringToType(std::string str);
-		int		 								ConvertTypeToPrecision(eOperandType eOp);
+		int										ConvertTypeToPrecision(eOperandType eOp);
+		eOperandType							ConvertPrecisionToType(int eOp);
 
 		std::string								getLine(void) const;
 		int										getLineNumber(void) const;
@@ -86,22 +95,22 @@ class instructions {
 		bool									setTypes(std::string);
 		bool									setValues(std::string);
 
-		void									ActionPush(std::vector<instructions>);
-		void									ActionPop(std::vector<instructions>);
-		void									ActionDump(std::vector<instructions>);
-		void									ActionAssert(std::vector<instructions>);
-		void									ActionAdd(std::vector<instructions>);
-		void									ActionSub(std::vector<instructions>);
-		void									ActionMul(std::vector<instructions>);
-		void									ActionDiv(std::vector<instructions>);
-		void									ActionMod(std::vector<instructions>);
-		void									ActionPrint(std::vector<instructions>);
-		void									ActionExit(std::vector<instructions>);
+		void									ActionPush(std::vector<Num>);
+		void									ActionPop(std::vector<Num>);
+		void									ActionDump(std::vector<Num>);
+		void									ActionAssert(std::vector<Num>);
+		void									ActionAdd(std::vector<Num>);
+		void									ActionSub(std::vector<Num>);
+		void									ActionMul(std::vector<Num>);
+		void									ActionDiv(std::vector<Num>);
+		void									ActionMod(std::vector<Num>);
+		void									ActionPrint(std::vector<Num>);
+		void									ActionExit(std::vector<Num>);
 
 
 };
 
-
+#endif
 
 
 

@@ -12,11 +12,11 @@
 
 NAME 		= avm
 
-CXX			= g++
+CXX			= g++ -std=c++11
 CXXFLAGS	= -Wall -Werror -Wextra
 
 INC			= -I include
-SRC			= main.cpp instructionsClass.cpp
+SRC			= main.cpp instructionsClass.cpp NumClass.cpp
 OBJ			= $(SRC:%.cpp=obj/%.o)
 
 all: $(NAME)
