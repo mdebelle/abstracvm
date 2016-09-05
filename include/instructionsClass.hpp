@@ -13,11 +13,10 @@
 #ifndef INSTRUCTIONS_HPP
 # define INSTRUCTIONS_HPP
 
-#include <iostream>
-#include <vector>
 #include <map>
-#include "NumClass.hpp"
+#include <vector>
 #include "eOperandType.hpp"
+#include "NumClass.hpp"
 
 class instructions {
 
@@ -40,9 +39,9 @@ class instructions {
 		float									_fvalue;
 		double									_dvalue;
 
-		std::vector<Num>						_currentStack;
+		std::vector<IOperand const *>			_currentStack;
 
-		typedef void							(instructions::*Action)(std::vector<Num>);
+		typedef void							(instructions::*Action)(std::vector<IOperand const *>);
 		typedef std::map<std::string, Action>	action_map;
 
 		action_map								_m;
@@ -63,9 +62,9 @@ class instructions {
 		~instructions();
 		
 		bool									ExitLoop(bool exit);
-		std::vector<Num>						Execute(std::vector<Num>);
-		bool									isStackEnought(std::vector<Num>);
-		bool									isinlimits(std::vector<Num>);
+		std::vector<IOperand const *>			Execute(std::vector<IOperand const *>);
+		bool									isStackEnought(std::vector<IOperand const *>);
+		bool									isinlimits(std::vector<IOperand const *>);
 		void									setErrorLimits(std::string);
 		void									setErrorZero(void);
 		eOperandType							ConvertStringToType(std::string str);
@@ -95,18 +94,17 @@ class instructions {
 		bool									setTypes(std::string);
 		bool									setValues(std::string);
 
-		void									ActionPush(std::vector<Num>);
-		void									ActionPop(std::vector<Num>);
-		void									ActionDump(std::vector<Num>);
-		void									ActionAssert(std::vector<Num>);
-		void									ActionAdd(std::vector<Num>);
-		void									ActionSub(std::vector<Num>);
-		void									ActionMul(std::vector<Num>);
-		void									ActionDiv(std::vector<Num>);
-		void									ActionMod(std::vector<Num>);
-		void									ActionPrint(std::vector<Num>);
-		void									ActionExit(std::vector<Num>);
-
+		void									ActionPush(std::vector<IOperand const *>);
+		void									ActionPop(std::vector<IOperand const *>);
+		void									ActionDump(std::vector<IOperand const *>);
+		void									ActionAssert(std::vector<IOperand const *>);
+		void									ActionAdd(std::vector<IOperand const *>);
+		void									ActionSub(std::vector<IOperand const *>);
+		void									ActionMul(std::vector<IOperand const *>);
+		void									ActionDiv(std::vector<IOperand const *>);
+		void									ActionMod(std::vector<IOperand const *>);
+		void									ActionPrint(std::vector<IOperand const *>);
+		void									ActionExit(std::vector<IOperand const *>);
 
 };
 

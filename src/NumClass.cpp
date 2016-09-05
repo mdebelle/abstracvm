@@ -1,43 +1,50 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   NumClass.cpp                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mdebelle <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2016/09/05 18:48:50 by mdebelle          #+#    #+#             */
+/*   Updated: 2016/09/05 18:49:39 by mdebelle         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
 #include "NumClass.hpp"
 
-Num::Num(int iNum, float fNum, double dNum, eOperandType type) :
-	_iNum(iNum), _fNum(fNum), _dNum(dNum), _type(type)
-{
+// IOperand const * Num::createOperand( eOperandType type, std::string const & value ) const
+// {
+// 	switch(type) {
+// 		case eOperandType::e_int8 : return createInt8(value);
+// 		case eOperandType::e_int16 : return createInt16(value);
+// 		case eOperandType::e_int32 : return createInt32(value);
+// 		case eOperandType::e_float : return createFloat(value);
+// 		case eOperandType::e_double : return createDouble(value);
+// 	}
+// 	return NULL;
+// }
 
-	switch (_type) {
-		case eOperandType::e_int8: case eOperandType::e_int16: case eOperandType::e_int32:
-			_str = std::to_string(iNum);
-			break ;
-		case eOperandType::e_float:
-			_str = std::to_string(_fNum);
-			break ;
-		case eOperandType::e_double:
-			_str = std::to_string(_dNum);
-			break ;
-		default:
-			return;
-	}
-	return;
-}
-Num::Num(std::string str, eOperandType type) :
-	_str(str), _type(type)
-{
-	std::string::size_type sz;
-	_dNum = std::stod(str, &sz);
-	_fNum = std::stof(str, &sz);
-	_iNum = _fNum;
+// IOperand const * Num::createInt8( std::string const & value ) const
+// {
+// 	return NULL;
+// }
 
-	return;
-}
-Num::~Num(void){
-	return;
-}
+// IOperand const * Num::createInt16( std::string const & value ) const
+// {
+// 	return NULL;
+// }
 
-int				Num::getiNum(void) const { return _iNum; }
-float			Num::getfNum(void) const { return _fNum; }
-double			Num::getdNum(void) const { return _dNum; }
-std::string		Num::getStr(void) const { return _str; }
-eOperandType	Num::gettype(void) const { return _type; }
+// IOperand const * Num::createInt32( std::string const & value ) const
+// {
+// 	return NULL;
+// }
 
+// IOperand const * Num::createFloat( std::string const & value ) const
+// {
+// 	return NULL;
+// }
 
+// IOperand const * Num::createDouble( std::string const & value ) const
+// {
+// 	return NULL;
+// }

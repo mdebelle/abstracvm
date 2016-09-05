@@ -11,9 +11,6 @@
 /* ************************************************************************** */
 
 #include "instructionsClass.hpp"
-#include "eOperandType.hpp"
-#include <stdio.h>
-
 
 static std::string &ltrim(std::string &s) {
     s.erase(s.begin(), std::find_if(s.begin(), s.end(),
@@ -67,18 +64,6 @@ void						instructions::ParseInstruction()
 	else if (isSimpleAction("exit", str))
 		_exit = true;
 }
-
-// bool						instructions::IsComment(std::string comp, std::string str, void (*f)(std::string))
-// {
-// 	std::size_t				found = str.find(comp);
-
-// 	if (found <= str.length())
-// 	{
-// 		(*f)(str);
-// 		return true;
-// 	}
-// 	return false;
-// }
 
 std::string					instructions::SplitComment(std::string sep, std::string str)
 {
@@ -157,7 +142,7 @@ bool						instructions::ExitLoop(bool exit)
 	return false;
 }
 
-std::vector<Num> 	instructions::Execute(std::vector<Num> lst)
+std::vector<IOperand const *> 	instructions::Execute(std::vector<IOperand const *> lst)
 {
 	action_map::const_iterator iter = _m.find(getAction());
 	if (iter == _m.end())
@@ -177,7 +162,7 @@ void				instructions::setErrorZero(void)
 	_valid = false;
 }
 
-bool				instructions::isStackEnought(std::vector<Num> v)
+bool				instructions::isStackEnought(std::vector<IOperand const *> v)
 {
 	if (v.size() > 1)
 		return true;
@@ -186,27 +171,27 @@ bool				instructions::isStackEnought(std::vector<Num> v)
 	return false;
 }
 
-bool				instructions::isinlimits(std::vector<Num> v)
-{
-	auto tmp = v.back();
+// bool				instructions::isinlimits(std::vector<IOperand const *> v)
+// {
+// 	auto tmp = v.back();
 
-	if ((tmp.gettype() == eOperandType::e_double && 
-			(std::numeric_limits<double>::max() < tmp.getdNum() || tmp.getdNum() < std::numeric_limits<double>::min()))
-		|| (tmp.gettype() == eOperandType::e_float && 
-			(std::numeric_limits<float>::max() < tmp.getfNum() || tmp.getfNum() < std::numeric_limits<float>::min()))
-		|| (tmp.gettype() == eOperandType::e_int32 && 
-			(std::numeric_limits<int>::max() < tmp.getiNum() || tmp.getiNum() < std::numeric_limits<int>::min()))
-		|| (tmp.gettype() == eOperandType::e_int16 && 
-			(std::numeric_limits<short int>::max() < tmp.getiNum() || tmp.getiNum() < std::numeric_limits<short int>::min()))
-		|| (tmp.gettype() == eOperandType::e_int8 &&
-			(255 < tmp.getiNum() || tmp.getiNum() < -255)))
-	{
-		_error = "Line " + std::to_string(_lineNumber) + ": Error : Underflow/Overflow on a value";
-		_valid = false;
-		return false;
-	}
-	return true;
-}
+// 	if ((tmp.gettype() == eOperandType::e_double && 
+// 			(std::numeric_limits<double>::max() < tmp.getdNum() || tmp.getdNum() < std::numeric_limits<double>::min()))
+// 		|| (tmp.gettype() == eOperandType::e_float && 
+// 			(std::numeric_limits<float>::max() < tmp.getfNum() || tmp.getfNum() < std::numeric_limits<float>::min()))
+// 		|| (tmp.gettype() == eOperandType::e_int32 && 
+// 			(std::numeric_limits<int>::max() < tmp.getiNum() || tmp.getiNum() < std::numeric_limits<int>::min()))
+// 		|| (tmp.gettype() == eOperandType::e_int16 && 
+// 			(std::numeric_limits<short int>::max() < tmp.getiNum() || tmp.getiNum() < std::numeric_limits<short int>::min()))
+// 		|| (tmp.gettype() == eOperandType::e_int8 &&
+// 			(255 < tmp.getiNum() || tmp.getiNum() < -255)))
+// 	{
+// 		_error = "Line " + std::to_string(_lineNumber) + ": Error : Underflow/Overflow on a value";
+// 		_valid = false;
+// 		return false;
+// 	}
+// 	return true;
+// }
 
 eOperandType				instructions::ConvertStringToType(std::string str)
 {
@@ -345,10 +330,11 @@ bool						instructions::setValues(std::string str)
  * ◦ float(z) : Creates a float with value z.
  * ◦ double(z) : Creates a double with value z.
 */
-void						instructions::ActionPush(std::vector<Num> v)
+void						instructions::ActionPush(std::vector<IOperand const *> v)
 {
 	_currentStack = v;
-	_currentStack.push_back(Num(getSvalue(), getType()));
+	Factory f;
+	_currentStack.push_back(f.createOperand(getType(), getSvalue()));
 	isinlimits(_currentStack);
 	return ;
 }
@@ -357,7 +343,7 @@ void						instructions::ActionPush(std::vector<Num> v)
  * Unstacks the value from the top of the stack.
  * If the stack is empty, the program execution must stop with an error.
 */
-void						instructions::ActionPop(std::vector<Num> v)
+void						instructions::ActionPop(std::vector<IOperand const *> v)
 {
 	_currentStack = v;
 	if (v.size() > 0)
@@ -373,11 +359,11 @@ void						instructions::ActionPop(std::vector<Num> v)
  *	Displays each value of the stack, from the most recent one to the oldest one WITHOUT CHANGING the stack.
  *	Each value is separated from the next one by a newline.
 */
-void						instructions::ActionDump(std::vector<Num> v)
+void						instructions::ActionDump(std::vector<IOperand const *> v)
 {
 	_currentStack = v;
-	for (std::vector<Num>::reverse_iterator i = _currentStack.rbegin(); i != _currentStack.rend(); ++i)
-		_out = i->getStr() + "\n" + _out;
+	for (auto i = _currentStack.rbegin(); i != _currentStack.rend(); ++i)
+		_out = i.toString() + "\n" + _out;
 	return ;
 }
 
@@ -386,11 +372,12 @@ void						instructions::ActionDump(std::vector<Num> v)
  *	If it is not the case, the program execution must stop with an error.
  *	The value v has the same form that those passed as parameters to the instruction push
 */
-void						instructions::ActionAssert(std::vector<Num> v)
+void						instructions::ActionAssert(std::vector<IOperand const *> v)
 {
 	_currentStack = v;
-	if (v.back().getStr() == getSvalue())
-		_currentStack.push_back(Num(getSvalue(), getType()));
+	Factory f;
+	if (v.back()->toString() == getSvalue())
+		_currentStack.push_back(f.createOperand(getType(), getSvalue()));
 	else {
 		_valid = false;
 		_error = "Line " + std::to_string(_lineNumber) + ": Error : An assert instruction is not true";
@@ -403,7 +390,7 @@ void						instructions::ActionAssert(std::vector<Num> v)
  * Unstacks the first two values on the stack, adds them together and stacks the result.
  * If the number of values on the stack is strictly inferior to 2, the program execution must stop with an error.
 */
-void						instructions::ActionAdd(std::vector<Num> v)
+void						instructions::ActionAdd(std::vector<IOperand const *> v)
 {
 	_currentStack = v;
 	if (isStackEnought(v))
@@ -413,15 +400,7 @@ void						instructions::ActionAdd(std::vector<Num> v)
 
 		_currentStack.pop_back();
 		_currentStack.pop_back();
-
-		auto p = (i.gettype() >= j.gettype()) ? i.gettype() : j.gettype();
-		
-		_currentStack.push_back(Num(
-			(i.getiNum() + j.getiNum()),
-			(i.getfNum() + j.getfNum()),
-			(i.getdNum() + j.getdNum()), p));
-
-		isinlimits(_currentStack);
+		_currentStack.push_back(*i + *j);
 	}
 	return ;
 }
@@ -429,7 +408,7 @@ void						instructions::ActionAdd(std::vector<Num> v)
  * Unstacks the first two values on the stack, subtracts them, then stacks the result.
  * If the number of values on the stack is strictly inferior to 2, the program execution must stop with an error.
 */
-void						instructions::ActionSub(std::vector<Num> v)
+void						instructions::ActionSub(std::vector<IOperand const *> v)
 {
 	_currentStack = v;
 	if (isStackEnought(v))
@@ -439,14 +418,7 @@ void						instructions::ActionSub(std::vector<Num> v)
 		
 		_currentStack.pop_back();
 		_currentStack.pop_back();
-	
-		auto p = (i.gettype() >= j.gettype()) ? i.gettype() : j.gettype();
-		
-		_currentStack.push_back(Num(
-			(i.getiNum() + j.getiNum()),
-			(i.getfNum() + j.getfNum()),
-			(i.getdNum() + j.getdNum()), p));
-
+		_currentStack.push_back(*j - *i);
 	}
 	return ;
 }
@@ -455,7 +427,7 @@ void						instructions::ActionSub(std::vector<Num> v)
  * Unstacks the first two values on the stack, multiplies them, then stacks the result.
  * If the number of values on the stack is strictly inferior to 2, the program execution must stop with an error.
 */
-void						instructions::ActionMul(std::vector<Num> v)
+void						instructions::ActionMul(std::vector<IOperand const *> v)
 {
 	_currentStack = v;
 	if (isStackEnought(v))
@@ -465,13 +437,7 @@ void						instructions::ActionMul(std::vector<Num> v)
 
 		_currentStack.pop_back();
 		_currentStack.pop_back();
-
-		auto p = (i.gettype() >= j.gettype()) ? i.gettype() : j.gettype();
-
-		_currentStack.push_back(Num(
-			(i.getiNum() * j.getiNum()),
-			(i.getfNum() * j.getfNum()),
-			(i.getdNum() * j.getdNum()), p));
+		_currentStack.push_back(*j * *i);
 	}
 	return ;
 }
@@ -484,7 +450,7 @@ void						instructions::ActionMul(std::vector<Num> v)
  * If you don’t understand why, some will understand.
  * The linked question is an open one, there’s no definitive answer.
 */
-void						instructions::ActionDiv(std::vector<Num> v)
+void						instructions::ActionDiv(std::vector<IOperand const *> v)
 {
 	_currentStack = v;
 	if (isStackEnought(v))
@@ -494,18 +460,7 @@ void						instructions::ActionDiv(std::vector<Num> v)
 
 		_currentStack.pop_back();
 		_currentStack.pop_back();
-
-		auto p = (i.gettype() >= j.gettype()) ? i.gettype() : j.gettype();
-
-		if (i.getiNum() == 0) {
-			setErrorZero();
-			return ;
-		}
-
-		_currentStack.push_back(Num(
-			(j.getiNum() / i.getiNum()),
-			(j.getfNum() / i.getfNum()),
-			(j.getdNum() / i.getdNum()), p));
+		_currentStack.push_back(*j / *i);
 	}
 	return ;
 }
@@ -516,7 +471,7 @@ void						instructions::ActionDiv(std::vector<Num> v)
  * Moreover, if the divisor is equal to 0, the program execution must stop with an error too.
  * Same note as above about fp values.
 */
-void						instructions::ActionMod(std::vector<Num> v)
+void						instructions::ActionMod(std::vector<IOperand const *> v)
 {
 	_currentStack = v;
 	if (isStackEnought(v))
@@ -526,20 +481,7 @@ void						instructions::ActionMod(std::vector<Num> v)
 
 		_currentStack.pop_back();
 		_currentStack.pop_back();
-
-		if (i.getiNum() == 0) {
-			setErrorZero();
-			return ;
-		}					
-
-		int					itmp = j.getiNum() % i.getiNum();
-		float				ftmp = itmp;
-		double				dtmp = itmp;
-
-		auto p = (i.gettype() >= j.gettype()) ? i.gettype() : j.gettype();
-		p  = (p > eOperandType::e_int32) ? eOperandType::e_int32 : p;
-
-		_currentStack.push_back(Num(itmp, ftmp, dtmp, p));
+		_currentStack.push_back(*j % *i);
 	}
 	return ;
 }
@@ -549,15 +491,12 @@ void						instructions::ActionMod(std::vector<Num> v)
  * (If not, see the instruction assert)
  * Then interprets it as an ASCII value and displays the corresponding character on the standard output.
 */
-void						instructions::ActionPrint(std::vector<Num> v)
+void						instructions::ActionPrint(std::vector<IOperand const *> v)
 {
 	_currentStack = v;
-	if (_currentStack.back().gettype() == eOperandType::e_int8)
+	if (_currentStack.back()->getType() == eOperandType::e_int8)
 	{
-		char str[3];
-		sprintf(str, "%c", _currentStack.back().getiNum());
-		
-		std::string t(str);
+		static_cast<char>()
 		_out = t;
 	}
 	return ;
@@ -568,8 +507,14 @@ void						instructions::ActionPrint(std::vector<Num> v)
  * If this instruction does not appears while all others instruction has been processed,
  * the execution must stop with an error.
 */
-void						instructions::ActionExit(std::vector<Num> v)
+void						instructions::ActionExit(std::vector<IOperand const *> v)
 {
 	_currentStack = v;
 	return ;
 }
+
+
+
+
+
+

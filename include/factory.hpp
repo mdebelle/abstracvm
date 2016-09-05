@@ -10,9 +10,11 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "IOperand.hpp"
+#ifndef FACTORY_HPP
+# define FACTORY_HPP
 
-class factory
+
+class Factory
 {
 	private:
 		IOperand const * createInt8( std::string const & value ) const;
@@ -21,11 +23,11 @@ class factory
 		IOperand const * createFloat( std::string const & value ) const;
 		IOperand const * createDouble( std::string const & value ) const;
 
-		std::vector<IOperand> v_Operand;
-
 	public:
-		factory();
-		~factory();
+		Factory();
+		~Factory();
 		IOperand const * createOperand( eOperandType type, std::string const & value ) const;
 	
 };
+
+#endif

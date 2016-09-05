@@ -12,9 +12,10 @@
 
 #include <iostream>
 #include <fstream>
-#include <string>
 #include <vector>
 #include "instructionsClass.hpp"
+#include "NumClass.hpp"
+// #include "Num.hpp"
 
 void							exiterror(std::string str)
 {
@@ -23,14 +24,14 @@ void							exiterror(std::string str)
 
 void							launchexec(std::vector<instructions> v)
 {
-	std::vector<Num> 			vNum;
+	std::vector<IOperand const *> 			vOperand;
 
 	for (std::vector<instructions>::iterator i = v.begin(); i != v.end(); ++i)
 	{
 		if (!i->getValid()) return exiterror(i->getError());
 		else
 		{
-			vNum = i->Execute(vNum);
+			vOperand = i->Execute(vOperand);
 			if (!i->getValid()) return exiterror(i->getError());
 		}
 	}
