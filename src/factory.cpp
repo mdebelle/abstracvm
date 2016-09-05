@@ -23,15 +23,14 @@ factory::~factory()
 
 }
 
-
 IOperand const * factory::createOperand( eOperandType type, std::string const & value ) const
 {
 	switch(type) {
-		case INT8 : return createInt8(value);
-		case INT16 : return createInt16(value);
-		case INT32 : return createInt32(value);
-		case FLOAT : return createFloat(value);
-		case DOUBLE : return createDouble(value);
+		case eOperandType::e_int8 : return createInt8(value);
+		case eOperandType::e_int16 : return createInt16(value);
+		case eOperandType::e_int32 : return createInt32(value);
+		case eOperandType::e_float : return createFloat(value);
+		case eOperandType::e_double : return createDouble(value);
 	}
 	return NULL;
 }

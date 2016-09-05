@@ -68,17 +68,17 @@ void						instructions::ParseInstruction()
 		_exit = true;
 }
 
-bool						instructions::IsComment(std::string comp, std::string str, void (*f)(std::string))
-{
-	std::size_t				found = str.find(comp);
+// bool						instructions::IsComment(std::string comp, std::string str, void (*f)(std::string))
+// {
+// 	std::size_t				found = str.find(comp);
 
-	if (found <= str.length())
-	{
-		(*f)(str);
-		return true;
-	}
-	return false;
-}
+// 	if (found <= str.length())
+// 	{
+// 		(*f)(str);
+// 		return true;
+// 	}
+// 	return false;
+// }
 
 std::string					instructions::SplitComment(std::string sep, std::string str)
 {
@@ -95,16 +95,17 @@ bool						instructions::isValue(std::string str)
 {
 	std::size_t				foundone = str.find("(");
 	std::size_t				foundtwo = str.find_last_of(")");
+
 	if (foundone < str.length() && foundtwo < str.length())
 	{
 		std::string			type = str.substr(0, foundone);
 		std::string 		value = str.substr(foundone+1, foundtwo - (foundone+1));
-		if (!setTypes(type) || !setValues(value))
-			return false;
-		return true;
+		if (!setTypes(type) || !setValues(value)) return false;
+		else return true;
 	}
 	return false;
 }
+
 bool						instructions::isSimpleAction(std::string action, std::string str)
 {
 	if (action.compare(str) == 0)
@@ -130,8 +131,7 @@ bool						instructions::isActionValue(std::string comp, std::string str)
 			{
 				std::string	value = str.substr(found);
 				_valid = isValue(trim(value));
-				if (_valid)
-					return true;
+				if (_valid) return true;
 			}
 		}
 		_error = "Line " + std::to_string(_lineNumber) + ": Error : The assembly program includes one or several lexical errors or syntactic errors.";
@@ -140,202 +140,6 @@ bool						instructions::isActionValue(std::string comp, std::string str)
 	}
 	return false;
 }
-
-void						instructions::ActionPush(std::vector<Num> v)
-{
-	_currentStack = v;
-	_currentStack.push_back(Num(getSvalue(), getType()));
-	isinlimits(_currentStack);
-	// std::cerr << "[Push]" << std::endl;
-	return ;
-}
-void						instructions::ActionPop(std::vector<Num> v)
-{
-	_currentStack = v;
-	if (v.size() > 0)
-		_currentStack.pop_back();
-	else {
-		_error = "Line " + std::to_string(_lineNumber) + ": Error : Instruction pop on an empty stack";
-		_valid = false;
-	}
-	// std::cerr << "[Pop]" << std::endl;
-	return ;
-}
-
-/*
- *	Displays each value of the stack, from the most recent one to the oldest one WITHOUT CHANGING the stack.
- *	Each value is separated from the next one by a newline.
-*/
-void						instructions::ActionDump(std::vector<Num> v)
-{
-	_currentStack = v;
-	for (std::vector<Num>::reverse_iterator i = _currentStack.rbegin(); i != _currentStack.rend(); ++i)
-	{
-		_out = i->getStr() + "\n" + _out;
-	}
-	// std::cerr << "[Dump]" << std::endl;
-	return ;
-}
-
-/*
- *	Asserts that the value at the top of the stack is equal to the one passed as parameter for this instruction.
- *	If it is not the case, the program execution must stop with an error.
- *	The value v has the same form that those passed as parameters to the instruction push
-*/
-void						instructions::ActionAssert(std::vector<Num> v)
-{
-	// std::cerr << "[Assert]" << std::endl;
-	_currentStack = v;
-	if (v.back().getStr() == getSvalue())
-		_currentStack.push_back(Num(getSvalue(), getType()));
-	else {
-		_valid = false;
-		_error = "Line " + std::to_string(_lineNumber) + ": Error : An assert instruction is not true";
-		return; // Stop
-	}
-	return ;
-}
-
-void						instructions::ActionAdd(std::vector<Num> v)
-{
-	_currentStack = v;
-	if (isStackEnought(v))
-	{
-		auto i = v.rbegin()[0];
-		auto j = v.rbegin()[1];
-
-		_currentStack.pop_back();
-		_currentStack.pop_back();
-
-		auto p = (i.gettype() >= j.gettype()) ? i.gettype() : j.gettype();
-		
-		_currentStack.push_back(Num(
-			(i.getiNum() + j.getiNum()),
-			(i.getfNum() + j.getfNum()),
-			(i.getdNum() + j.getdNum()), p));
-
-		isinlimits(_currentStack);
-	}
-	// std::cerr << "[Add]" << std::endl;
-	return ;
-}
-void						instructions::ActionSub(std::vector<Num> v)
-{
-	_currentStack = v;
-	if (isStackEnought(v))
-	{
-		auto i = v.rbegin()[0];
-		auto j = v.rbegin()[1];
-		
-		_currentStack.pop_back();
-		_currentStack.pop_back();
-	
-		auto p = (i.gettype() >= j.gettype()) ? i.gettype() : j.gettype();
-		
-		_currentStack.push_back(Num(
-			(i.getiNum() + j.getiNum()),
-			(i.getfNum() + j.getfNum()),
-			(i.getdNum() + j.getdNum()), p));
-
-	}	// std::cerr << "[Sub]" << std::endl;
-	return ;
-}
-void						instructions::ActionMul(std::vector<Num> v)
-{
-	_currentStack = v;
-	if (isStackEnought(v))
-	{
-		auto i = v.rbegin()[0];
-		auto j = v.rbegin()[1];
-
-		_currentStack.pop_back();
-		_currentStack.pop_back();
-
-		auto p = (i.gettype() >= j.gettype()) ? i.gettype() : j.gettype();
-
-		_currentStack.push_back(Num(
-			(i.getiNum() * j.getiNum()),
-			(i.getfNum() * j.getfNum()),
-			(i.getdNum() * j.getdNum()), p));
-	}
-	// std::cerr << "[Mul]" << std::endl;
-	return ;
-}
-void						instructions::ActionDiv(std::vector<Num> v)
-{
-	_currentStack = v;
-	if (isStackEnought(v))
-	{
-		auto i = v.rbegin()[0];
-		auto j = v.rbegin()[1];
-
-		_currentStack.pop_back();
-		_currentStack.pop_back();
-
-		auto p = (i.gettype() >= j.gettype()) ? i.gettype() : j.gettype();
-
-		if (i.getiNum() == 0) {
-			setErrorZero();
-			return ;
-		}
-
-		_currentStack.push_back(Num(
-			(j.getiNum() / i.getiNum()),
-			(j.getfNum() / i.getfNum()),
-			(j.getdNum() / i.getdNum()), p));
-	}
-	// std::cerr << "[Div]" << std::endl;
-	return ;
-}
-void						instructions::ActionMod(std::vector<Num> v)
-{
-	_currentStack = v;
-	if (isStackEnought(v))
-	{
-		auto i = v.rbegin()[0];
-		auto j = v.rbegin()[1];
-
-		_currentStack.pop_back();
-		_currentStack.pop_back();
-
-		if (i.getiNum() == 0) {
-			setErrorZero();
-			return ;
-		}					
-
-		int itmp = j.getiNum() % i.getiNum();
-		float ftmp = itmp;
-		double dtmp = itmp;
-
-		auto p = (i.gettype() >= j.gettype()) ? i.gettype() : j.gettype();
-		p  = (p > eOperandType::e_int32) ? eOperandType::e_int32 : p;
-
-		_currentStack.push_back(Num(itmp, ftmp, dtmp, p));
-	}
-	// std::cerr << "[Mod]" << std::endl;
-	return ;
-}
-void						instructions::ActionPrint(std::vector<Num> v)
-{
-	_currentStack = v;
-	if (_currentStack.back().gettype() == eOperandType::e_int8)
-	{
-		char str[3];
-		sprintf(str, "%c", _currentStack.back().getiNum());
-		
-		std::string t(str);
-		_out = t;
-	}
-	// std::cerr << "[Print]" << std::endl;
-	return ;
-}
-void						instructions::ActionExit(std::vector<Num> v)
-{
-	_currentStack = v;
-	// std::cerr << "[Exit]" << std::endl;
-	return ;
-}
-
 		
 bool						instructions::ExitLoop(bool exit)
 {
@@ -369,7 +173,6 @@ std::vector<Num> 	instructions::Execute(std::vector<Num> lst)
 
 void				instructions::setErrorZero(void)
 {
-
 	_error = "Line " + std::to_string(_lineNumber) + ": Error : Division/modulo by 0";
 	_valid = false;
 }
@@ -383,48 +186,35 @@ bool				instructions::isStackEnought(std::vector<Num> v)
 	return false;
 }
 
-void				instructions::setErrorLimits(std::string flow)
-{
-
-	_error = "Line " + std::to_string(_lineNumber) + ": Error : " + flow + " on a value";
-	_valid = false;
-}
-
 bool				instructions::isinlimits(std::vector<Num> v)
 {
 	auto tmp = v.back();
 
-	if ((tmp.gettype() == eOperandType::e_double && std::numeric_limits<double>::max() < tmp.getdNum())
-		|| (tmp.gettype() == eOperandType::e_float && std::numeric_limits<float>::max() < tmp.getfNum())
-		|| (tmp.gettype() == eOperandType::e_int32 && std::numeric_limits<int>::max() < tmp.getiNum())
-		|| (tmp.gettype() == eOperandType::e_int16 && std::numeric_limits<short int>::max() < tmp.getiNum())
-		|| (tmp.gettype() == eOperandType::e_int8 && 255 < tmp.getiNum())){
-			setErrorLimits("Overflow");
-			return false;
+	if ((tmp.gettype() == eOperandType::e_double && 
+			(std::numeric_limits<double>::max() < tmp.getdNum() || tmp.getdNum() < std::numeric_limits<double>::min()))
+		|| (tmp.gettype() == eOperandType::e_float && 
+			(std::numeric_limits<float>::max() < tmp.getfNum() || tmp.getfNum() < std::numeric_limits<float>::min()))
+		|| (tmp.gettype() == eOperandType::e_int32 && 
+			(std::numeric_limits<int>::max() < tmp.getiNum() || tmp.getiNum() < std::numeric_limits<int>::min()))
+		|| (tmp.gettype() == eOperandType::e_int16 && 
+			(std::numeric_limits<short int>::max() < tmp.getiNum() || tmp.getiNum() < std::numeric_limits<short int>::min()))
+		|| (tmp.gettype() == eOperandType::e_int8 &&
+			(255 < tmp.getiNum() || tmp.getiNum() < -255)))
+	{
+		_error = "Line " + std::to_string(_lineNumber) + ": Error : Underflow/Overflow on a value";
+		_valid = false;
+		return false;
 	}
-	else if ((tmp.gettype() == eOperandType::e_double && tmp.getdNum() < std::numeric_limits<double>::min()) 
-		|| (tmp.gettype() == eOperandType::e_float && tmp.getfNum() < std::numeric_limits<float>::min())
-		|| (tmp.gettype() == eOperandType::e_int32 && tmp.getiNum() < std::numeric_limits<int>::min())
-		|| (tmp.gettype() == eOperandType::e_int16 && tmp.getiNum() < std::numeric_limits<short int>::min())
-		|| (tmp.gettype() == eOperandType::e_int8 && tmp.getiNum() < -255)){
-			setErrorLimits("Underflow");
-			return false;
-		}
 	return true;
 }
 
 eOperandType				instructions::ConvertStringToType(std::string str)
 {
-	if (str.compare("int8") == 0)
-		return eOperandType::e_int8;
-	if (str.compare("int16") == 0)
-		return eOperandType::e_int16;
-	if (str.compare("int32") == 0)
-		return eOperandType::e_int32;
-	if (str.compare("float") == 0)
-		return eOperandType::e_float;
-	if (str.compare("double") == 0)
-		return eOperandType::e_double;
+	if (str.compare("int8") == 0) return eOperandType::e_int8;
+	if (str.compare("int16") == 0) return eOperandType::e_int16;
+	if (str.compare("int32") == 0) return eOperandType::e_int32;
+	if (str.compare("float") == 0) return eOperandType::e_float;
+	if (str.compare("double") == 0) return eOperandType::e_double;
 	return eOperandType::e_invalid;
 }
 
@@ -516,20 +306,19 @@ bool						instructions::setValues(std::string str)
 {
 	bool					virgule = false;
 
+	trim(str);
+	if (str.size() == 0) return false;
+
 	if (_stype.compare("float") == 0 || _stype.compare("double") == 0)
 	{
 		for (size_t i = 0; i < str.length(); ++i)
 		{
-			if (i == 0 && str[i] == '-')
-				continue ;
-			if (!isdigit(str[i]) && str[i] != '.')
-				return false;
+			if (i == 0 && str[i] == '-') continue;
+			if (!isdigit(str[i]) && str[i] != '.') return false;
 			else if (str[i] == '.')
 			{
-				if (!virgule)
-					virgule = true;
-				else
-					return false;
+				if (!virgule) virgule = true;
+				else return false;
 			}
 		}
 	}
@@ -537,13 +326,250 @@ bool						instructions::setValues(std::string str)
 	{
 		for (size_t i = 0; i < str.length(); ++i)
 		{
-			if (i == 0 && str[i] == '-')
-				continue ;
-			if (!isdigit(str[i]))
-				return false;
+			if (i == 0 && str[i] == '-') continue;
+			if (!isdigit(str[i])) return false;
 		}
 	}
 	_svalue = str;
 	return true;
 }
 
+/*************************/
+
+/*
+ * Pushes the value v at the top of the stack.
+ * The value v must have one of the following form:
+ * ◦ int8(n) : Creates an 8-bit integer with value n.
+ * ◦ int16(n) : Creates a 16-bit integer with value n.
+ * ◦ int32(n) : Creates a 32-bit integer with value n.
+ * ◦ float(z) : Creates a float with value z.
+ * ◦ double(z) : Creates a double with value z.
+*/
+void						instructions::ActionPush(std::vector<Num> v)
+{
+	_currentStack = v;
+	_currentStack.push_back(Num(getSvalue(), getType()));
+	isinlimits(_currentStack);
+	return ;
+}
+
+/*
+ * Unstacks the value from the top of the stack.
+ * If the stack is empty, the program execution must stop with an error.
+*/
+void						instructions::ActionPop(std::vector<Num> v)
+{
+	_currentStack = v;
+	if (v.size() > 0)
+		_currentStack.pop_back();
+	else {
+		_error = "Line " + std::to_string(_lineNumber) + ": Error : Instruction pop on an empty stack";
+		_valid = false;
+	}
+	return ;
+}
+
+/*
+ *	Displays each value of the stack, from the most recent one to the oldest one WITHOUT CHANGING the stack.
+ *	Each value is separated from the next one by a newline.
+*/
+void						instructions::ActionDump(std::vector<Num> v)
+{
+	_currentStack = v;
+	for (std::vector<Num>::reverse_iterator i = _currentStack.rbegin(); i != _currentStack.rend(); ++i)
+		_out = i->getStr() + "\n" + _out;
+	return ;
+}
+
+/*
+ *	Asserts that the value at the top of the stack is equal to the one passed as parameter for this instruction.
+ *	If it is not the case, the program execution must stop with an error.
+ *	The value v has the same form that those passed as parameters to the instruction push
+*/
+void						instructions::ActionAssert(std::vector<Num> v)
+{
+	_currentStack = v;
+	if (v.back().getStr() == getSvalue())
+		_currentStack.push_back(Num(getSvalue(), getType()));
+	else {
+		_valid = false;
+		_error = "Line " + std::to_string(_lineNumber) + ": Error : An assert instruction is not true";
+		return ;
+	}
+	return ;
+}
+
+/*
+ * Unstacks the first two values on the stack, adds them together and stacks the result.
+ * If the number of values on the stack is strictly inferior to 2, the program execution must stop with an error.
+*/
+void						instructions::ActionAdd(std::vector<Num> v)
+{
+	_currentStack = v;
+	if (isStackEnought(v))
+	{
+		auto i = v.rbegin()[0];
+		auto j = v.rbegin()[1];
+
+		_currentStack.pop_back();
+		_currentStack.pop_back();
+
+		auto p = (i.gettype() >= j.gettype()) ? i.gettype() : j.gettype();
+		
+		_currentStack.push_back(Num(
+			(i.getiNum() + j.getiNum()),
+			(i.getfNum() + j.getfNum()),
+			(i.getdNum() + j.getdNum()), p));
+
+		isinlimits(_currentStack);
+	}
+	return ;
+}
+/*
+ * Unstacks the first two values on the stack, subtracts them, then stacks the result.
+ * If the number of values on the stack is strictly inferior to 2, the program execution must stop with an error.
+*/
+void						instructions::ActionSub(std::vector<Num> v)
+{
+	_currentStack = v;
+	if (isStackEnought(v))
+	{
+		auto i = v.rbegin()[0];
+		auto j = v.rbegin()[1];
+		
+		_currentStack.pop_back();
+		_currentStack.pop_back();
+	
+		auto p = (i.gettype() >= j.gettype()) ? i.gettype() : j.gettype();
+		
+		_currentStack.push_back(Num(
+			(i.getiNum() + j.getiNum()),
+			(i.getfNum() + j.getfNum()),
+			(i.getdNum() + j.getdNum()), p));
+
+	}
+	return ;
+}
+
+/*
+ * Unstacks the first two values on the stack, multiplies them, then stacks the result.
+ * If the number of values on the stack is strictly inferior to 2, the program execution must stop with an error.
+*/
+void						instructions::ActionMul(std::vector<Num> v)
+{
+	_currentStack = v;
+	if (isStackEnought(v))
+	{
+		auto i = v.rbegin()[0];
+		auto j = v.rbegin()[1];
+
+		_currentStack.pop_back();
+		_currentStack.pop_back();
+
+		auto p = (i.gettype() >= j.gettype()) ? i.gettype() : j.gettype();
+
+		_currentStack.push_back(Num(
+			(i.getiNum() * j.getiNum()),
+			(i.getfNum() * j.getfNum()),
+			(i.getdNum() * j.getdNum()), p));
+	}
+	return ;
+}
+
+/*
+ * Unstacks the first two values on the stack, divides them, then stacks the result.
+ * If the number of values on the stack is strictly inferior to 2, the program execution must stop with an error.
+ * Moreover, if the divisor is equal to 0, the program execution must stop with an error too.
+ * Chatting about floating point values is relevant a this point.
+ * If you don’t understand why, some will understand.
+ * The linked question is an open one, there’s no definitive answer.
+*/
+void						instructions::ActionDiv(std::vector<Num> v)
+{
+	_currentStack = v;
+	if (isStackEnought(v))
+	{
+		auto i = v.rbegin()[0];
+		auto j = v.rbegin()[1];
+
+		_currentStack.pop_back();
+		_currentStack.pop_back();
+
+		auto p = (i.gettype() >= j.gettype()) ? i.gettype() : j.gettype();
+
+		if (i.getiNum() == 0) {
+			setErrorZero();
+			return ;
+		}
+
+		_currentStack.push_back(Num(
+			(j.getiNum() / i.getiNum()),
+			(j.getfNum() / i.getfNum()),
+			(j.getdNum() / i.getdNum()), p));
+	}
+	return ;
+}
+
+/*
+ * Unstacks the first two values on the stack, calculates the modulus, then stacks the result.
+ * If the number of values on the stack is strictly inferior to 2, the program execution must stop with an error.
+ * Moreover, if the divisor is equal to 0, the program execution must stop with an error too.
+ * Same note as above about fp values.
+*/
+void						instructions::ActionMod(std::vector<Num> v)
+{
+	_currentStack = v;
+	if (isStackEnought(v))
+	{
+		auto i = v.rbegin()[0];
+		auto j = v.rbegin()[1];
+
+		_currentStack.pop_back();
+		_currentStack.pop_back();
+
+		if (i.getiNum() == 0) {
+			setErrorZero();
+			return ;
+		}					
+
+		int					itmp = j.getiNum() % i.getiNum();
+		float				ftmp = itmp;
+		double				dtmp = itmp;
+
+		auto p = (i.gettype() >= j.gettype()) ? i.gettype() : j.gettype();
+		p  = (p > eOperandType::e_int32) ? eOperandType::e_int32 : p;
+
+		_currentStack.push_back(Num(itmp, ftmp, dtmp, p));
+	}
+	return ;
+}
+
+/*
+ * Asserts that the value at the top of the stack is an 8-bit integer.
+ * (If not, see the instruction assert)
+ * Then interprets it as an ASCII value and displays the corresponding character on the standard output.
+*/
+void						instructions::ActionPrint(std::vector<Num> v)
+{
+	_currentStack = v;
+	if (_currentStack.back().gettype() == eOperandType::e_int8)
+	{
+		char str[3];
+		sprintf(str, "%c", _currentStack.back().getiNum());
+		
+		std::string t(str);
+		_out = t;
+	}
+	return ;
+}
+
+/*
+ * Terminate the execution of the current program.
+ * If this instruction does not appears while all others instruction has been processed,
+ * the execution must stop with an error.
+*/
+void						instructions::ActionExit(std::vector<Num> v)
+{
+	_currentStack = v;
+	return ;
+}
