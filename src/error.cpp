@@ -10,6 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "error.hpp"
 
 OverflowError::OverflowError(){}
 OverflowError::~OverflowError() throw() {}

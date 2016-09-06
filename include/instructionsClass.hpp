@@ -64,7 +64,7 @@ class instructions {
 		bool									ExitLoop(bool exit);
 		std::vector<IOperand const *>			Execute(std::vector<IOperand const *>);
 		bool									isStackEnought(std::vector<IOperand const *>);
-		bool									isinlimits(std::vector<IOperand const *>);
+		// bool									isinlimits(std::vector<IOperand const *>);
 		void									setErrorLimits(std::string);
 		void									setErrorZero(void);
 		eOperandType							ConvertStringToType(std::string str);

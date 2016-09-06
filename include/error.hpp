@@ -33,11 +33,11 @@ class OverflowError: public AVM
 		char const * what() const throw();
 };
 
-class ZerroError: public AVM
+class ZeroError: public AVM
 {
 	public:
-		ZerroError();
-		~ZerroError() throw();
+		ZeroError();
+		~ZeroError() throw();
 		std::string	msg() const;
 		char const * what() const throw();
 };

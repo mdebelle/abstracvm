@@ -10,6 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "factory.hpp"
 #include "instructionsClass.hpp"
 
 static std::string &ltrim(std::string &s) {
@@ -171,28 +172,6 @@ bool				instructions::isStackEnought(std::vector<IOperand const *> v)
 	return false;
 }
 
-// bool				instructions::isinlimits(std::vector<IOperand const *> v)
-// {
-// 	auto tmp = v.back();
-
-// 	if ((tmp.gettype() == eOperandType::e_double && 
-// 			(std::numeric_limits<double>::max() < tmp.getdNum() || tmp.getdNum() < std::numeric_limits<double>::min()))
-// 		|| (tmp.gettype() == eOperandType::e_float && 
-// 			(std::numeric_limits<float>::max() < tmp.getfNum() || tmp.getfNum() < std::numeric_limits<float>::min()))
-// 		|| (tmp.gettype() == eOperandType::e_int32 && 
-// 			(std::numeric_limits<int>::max() < tmp.getiNum() || tmp.getiNum() < std::numeric_limits<int>::min()))
-// 		|| (tmp.gettype() == eOperandType::e_int16 && 
-// 			(std::numeric_limits<short int>::max() < tmp.getiNum() || tmp.getiNum() < std::numeric_limits<short int>::min()))
-// 		|| (tmp.gettype() == eOperandType::e_int8 &&
-// 			(255 < tmp.getiNum() || tmp.getiNum() < -255)))
-// 	{
-// 		_error = "Line " + std::to_string(_lineNumber) + ": Error : Underflow/Overflow on a value";
-// 		_valid = false;
-// 		return false;
-// 	}
-// 	return true;
-// }
-
 eOperandType				instructions::ConvertStringToType(std::string str)
 {
 	if (str.compare("int8") == 0) return eOperandType::e_int8;
@@ -333,9 +312,8 @@ bool						instructions::setValues(std::string str)
 void						instructions::ActionPush(std::vector<IOperand const *> v)
 {
 	_currentStack = v;
-	Factory f;
-	_currentStack.push_back(f.createOperand(getType(), getSvalue()));
-	isinlimits(_currentStack);
+	// _currentStack.push_back(Factory::createOperand(getType(), getSvalue()));
+	// isinlimits(_currentStack);
 	return ;
 }
 
@@ -362,8 +340,11 @@ void						instructions::ActionPop(std::vector<IOperand const *> v)
 void						instructions::ActionDump(std::vector<IOperand const *> v)
 {
 	_currentStack = v;
-	for (auto i = _currentStack.rbegin(); i != _currentStack.rend(); ++i)
-		_out = i.toString() + "\n" + _out;
+	while (v.size() > 0)
+	{
+		_out = v.back()->toString() + "\n" + _out;
+		v.pop_back();
+	}
 	return ;
 }
 
@@ -375,9 +356,8 @@ void						instructions::ActionDump(std::vector<IOperand const *> v)
 void						instructions::ActionAssert(std::vector<IOperand const *> v)
 {
 	_currentStack = v;
-	Factory f;
 	if (v.back()->toString() == getSvalue())
-		_currentStack.push_back(f.createOperand(getType(), getSvalue()));
+;		// _currentStack.push_back(createOperand(getType(), getSvalue()));
 	else {
 		_valid = false;
 		_error = "Line " + std::to_string(_lineNumber) + ": Error : An assert instruction is not true";
@@ -496,8 +476,10 @@ void						instructions::ActionPrint(std::vector<IOperand const *> v)
 	_currentStack = v;
 	if (_currentStack.back()->getType() == eOperandType::e_int8)
 	{
-		static_cast<char>()
-		_out = t;
+		const Num<int> *tmp = static_cast<const Num<int> * >(_currentStack.back());
+
+		std::cout << tmp->getValue();
+		// _out = t;
 	}
 	return ;
 }

@@ -125,7 +125,7 @@ IOperand const *	Num<T>::operator/( IOperand const & rhs ) const
 	Factory f;
 	eOperandType newType = (this->_type > rhs.getType()) ? this->_type : rhs.getType();
 	double val = std::stod(rhs.toString());
-	if (val == 0) throw ZerroError();
+	if (val == 0) throw ZeroError();
 	return (f.createOperand(newType, std::to_string(this->_value / val)));
 }
 
@@ -137,8 +137,14 @@ IOperand const *	Num<T>::operator%( IOperand const & rhs ) const
 	newType = (newType > eOperandType::e_int32) ? eOperandType::e_int32 : newType;
 	int	valint = static_cast<int>(this->_value);
 	int val = std::stoi(rhs.toString());
-	if (val == 0) throw ZerroError();
+	if (val == 0) throw ZeroError();
 	return (f.createOperand(newType, std::to_string(valint % val)));
+}
+
+template <typename T>
+std::string const &		Num<T>::toString( void ) const
+{
+	return this->_str;
 }
 
 #endif
