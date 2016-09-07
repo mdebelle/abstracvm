@@ -14,6 +14,16 @@
 #include "error.hpp"
 #include "NumClass.hpp"
 
+Factory::Factory()
+{
+	return ;
+}
+
+Factory::~Factory()
+{
+	return ;
+}
+
 IOperand const * Factory::createOperand( eOperandType type, std::string const & value )
 {
 	switch(type) {
@@ -36,27 +46,47 @@ IOperand const * Factory::createInt8( std::string const & value )
 
 IOperand const * Factory::createInt16( std::string const & value )
 {
-	short int	val = std::stoi(value);
+	short int	val; 
+	try {
+		val = std::stoi(value);
+	} catch (std::exception & e) {
+		throw OverflowError();
+	}
 	if (val <= std::numeric_limits<short int>::min() || val >= std::numeric_limits<short int>::max()) throw OverflowError(); 
 	return (new Num<int16_t>(val,eOperandType::e_int16));
 }
 
 IOperand const * Factory::createInt32( std::string const & value )
 {
-	int32_t		val = std::stoi(value);
+	int32_t		val;
+	try {
+		val = std::stoi(value);
+	} catch (std::exception & e) {
+		throw OverflowError();
+	}
 	return (new Num<int32_t>(val,eOperandType::e_int32));
 }
 
 IOperand const * Factory::createFloat( std::string const & value )
 {
-	float		val = std::stof(value);
+	float		val;
+	try {
+		val = std::stof(value);
+	} catch (std::exception & e) {
+		throw OverflowError();
+	}
 	if (val <= std::numeric_limits<float>::min() || val >= std::numeric_limits<float>::max()) throw OverflowError(); 
-	return (new Num<int8_t>(val,eOperandType::e_float));
+	return (new Num<float>(val,eOperandType::e_float));
 }
 
 IOperand const * Factory::createDouble( std::string const & value )
 {
-	double		val = std::stod(value);
+	double		val;
+	try {
+		val = std::stod(value);
+	} catch (std::exception & e) {
+		throw OverflowError();
+	}
 	if (val <= std::numeric_limits<double>::min() || val >= std::numeric_limits<double>::max()) throw OverflowError(); 
-	return (new Num<int8_t>(val,eOperandType::e_double));
+	return (new Num<double>(val,eOperandType::e_double));
 }

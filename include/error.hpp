@@ -17,6 +17,17 @@
 #include <sstream>
 #include <string>
 
+
+enum class eErrorType
+{
+	e_lexical = 0,
+	e_unknow = 1,
+	e_exit = 2,
+	e_zero = 3,
+	e_twovalues = 4,
+};
+
+
 class AVM: public std::exception
 {
 	public:
@@ -41,5 +52,61 @@ class ZeroError: public AVM
 		std::string	msg() const;
 		char const * what() const throw();
 };
+
+class EmptyError: public AVM
+{
+	public:
+		EmptyError();
+		~EmptyError() throw();
+		std::string	msg() const;
+		char const * what() const throw();
+};
+
+class AssertError: public AVM
+{
+	public:
+		AssertError();
+		~AssertError() throw();
+		std::string	msg() const;
+		char const * what() const throw();
+};
+
+class TwovaluesError: public AVM
+{
+	public:
+		TwovaluesError();
+		~TwovaluesError() throw();
+		std::string	msg() const;
+		char const * what() const throw();
+};
+
+class LexicalError: public AVM
+{
+	public:
+		LexicalError();
+		~LexicalError() throw();
+		std::string	msg() const;
+		char const * what() const throw();
+};
+
+class UnknownError: public AVM
+{
+	public:
+		UnknownError();
+		~UnknownError() throw();
+		std::string	msg() const;
+		char const * what() const throw();
+};
+
+class ExitError: public AVM
+{
+	public:
+		ExitError();
+		~ExitError() throw();
+		std::string	msg() const;
+		char const * what() const throw();
+};
+
+
 
 #endif

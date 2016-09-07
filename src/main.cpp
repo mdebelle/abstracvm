@@ -15,11 +15,17 @@
 #include <vector>
 #include "instructionsClass.hpp"
 #include "NumClass.hpp"
-// #include "Num.hpp"
+#include "error.hpp"
 
-void							exiterror(std::string str)
+void							exitlexicalerror(eErrorType error)
 {
-	std::cerr << str << std::endl;
+	switch (error){
+		case eErrorType::e_lexical: throw LexicalError();
+		case eErrorType::e_unknow: throw UnknownError();
+		case eErrorType::e_exit: throw ExitError();
+		case eErrorType::e_zero: throw ZeroError();
+		case eErrorType::e_twovalues: throw TwovaluesError();
+	}
 }
 
 void							launchexec(std::vector<instructions> v)
@@ -28,11 +34,15 @@ void							launchexec(std::vector<instructions> v)
 
 	for (std::vector<instructions>::iterator i = v.begin(); i != v.end(); ++i)
 	{
-		if (!i->getValid()) return exiterror(i->getError());
-		else
-		{
-			vOperand = i->Execute(vOperand);
-			if (!i->getValid()) return exiterror(i->getError());
+		try {
+			if (!i->getValid()) return exitlexicalerror(i->geteErrorType());
+			else
+			{
+				vOperand = i->Execute(vOperand);
+				if (!i->getValid()) return exitlexicalerror(i->geteErrorType());;
+			}
+		} catch (std::exception & e) {
+			std::cerr << "Line: " << i->getLineNumber() << ": " << e.what();
 		}
 	}
 }
@@ -47,12 +57,12 @@ void							fileArgument(char **argv)
 
 	if (avmfile.is_open())
 	{
-		while(getline(avmfile,line))
-		{
-			count++;
-			v.push_back(instructions(line, count));
-		}
-	}
+			while(getline(avmfile,line))
+			{
+				count++;
+				v.push_back(instructions(line, count));
+			}
+	}		
 	launchexec(v);
 	return ;
 }

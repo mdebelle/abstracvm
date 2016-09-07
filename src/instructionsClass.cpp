@@ -31,10 +31,10 @@ static std::string &trim(std::string &s) {
 
 instructions::instructions(std::string line, int number)
 {
-	_line = line;
-	_lineNumber = number;
-	_exit = false;
-	_valid = false;
+	this->_line = line;
+	this->_lineNumber = number;
+	this->_exit = false;
+	this->_valid = false;
 	setActionsMap();
 	ParseInstruction();
 	return ;
@@ -46,11 +46,11 @@ instructions::~instructions(void)
 
 void						instructions::ParseInstruction()
 {
-	std::string				str = _line;
+	std::string				str = this->_line;
 	trim(str);
 	str = SplitComment(";", str);
 	if (str.empty())
-		_valid = true;
+		this->_valid = true;
 	else if (isActionValue("push", str)
 		|| isActionValue("assert", str)
 		|| isSimpleAction("pop", str)
@@ -63,7 +63,11 @@ void						instructions::ParseInstruction()
 		|| isSimpleAction("print", str))
 		;
 	else if (isSimpleAction("exit", str))
-		_exit = true;
+		this->_exit = true;
+	else {
+		this->_valid = false;
+		this->_etype = eErrorType::e_unknow;
+	}
 }
 
 std::string					instructions::SplitComment(std::string sep, std::string str)
@@ -96,12 +100,11 @@ bool						instructions::isSimpleAction(std::string action, std::string str)
 {
 	if (action.compare(str) == 0)
 	{
-		_valid = true;
-		_action = action;
+		this->_valid = true;
+		this->_action = action;
 		return true;
 	}
-	_valid = false;
-	_error = "Line " + std::to_string(_lineNumber) + ": Error : An instruction is unknown";
+	this->_valid = false;
 	return false;
 }
 
@@ -112,16 +115,15 @@ bool						instructions::isActionValue(std::string comp, std::string str)
 		std::size_t			found = str.find(" ");
 		if (found < str.length())
 		{
-			_action = str.substr(0, found);
-			if (_action.compare(comp) == 0)
+			this->_action = str.substr(0, found);
+			if (this->_action.compare(comp) == 0)
 			{
 				std::string	value = str.substr(found);
-				_valid = isValue(trim(value));
-				if (_valid) return true;
+				this->_valid = isValue(trim(value));
+				if (this->_valid) return true;
 			}
 		}
-		_error = "Line " + std::to_string(_lineNumber) + ": Error : The assembly program includes one or several lexical errors or syntactic errors.";
-		_valid = false;
+		this->_valid = false;
 		return true;
 	}
 	return false;
@@ -129,14 +131,14 @@ bool						instructions::isActionValue(std::string comp, std::string str)
 		
 bool						instructions::ExitLoop(bool exit)
 {
-	std::string				str = _line;
+	std::string				str = this->_line;
 	trim(str);
 	if (str.compare(";;") == 0)
 	{
 		if (exit == false)
 		{
-			_valid = false;
-			_error = "Line " + std::to_string(_lineNumber) + ": Error : The program doesn’t have an exit instruction";
+			this->_valid = false;
+			this->_etype = eErrorType::e_exit;
 		}
 		return true;
 	}
@@ -145,30 +147,19 @@ bool						instructions::ExitLoop(bool exit)
 
 std::vector<IOperand const *> 	instructions::Execute(std::vector<IOperand const *> lst)
 {
-	action_map::const_iterator iter = _m.find(getAction());
-	if (iter == _m.end())
-	{
-		_currentStack = lst;
-	} else {
-		(this->*iter->second)(lst);
-	}
+	action_map::const_iterator iter = this->_m.find(getAction());
+	if (iter == this->_m.end()) this->_currentStack = lst;
+	else (this->*iter->second)(lst);
 	std::cout << getOut();
-	return _currentStack;
-}
-
-
-void				instructions::setErrorZero(void)
-{
-	_error = "Line " + std::to_string(_lineNumber) + ": Error : Division/modulo by 0";
-	_valid = false;
+	return this->_currentStack;
 }
 
 bool				instructions::isStackEnought(std::vector<IOperand const *> v)
 {
 	if (v.size() > 1)
 		return true;
-	_error = "Line " + std::to_string(_lineNumber) + ": Error : The stack is composed of strictly less that two values when an arithmetic instruction is executed.";
-	_valid = false;
+	this->_valid = false;
+	this->_etype = eErrorType::e_twovalues;
 	return false;
 }
 
@@ -182,72 +173,30 @@ eOperandType				instructions::ConvertStringToType(std::string str)
 	return eOperandType::e_invalid;
 }
 
-int		 					instructions::ConvertTypeToPrecision(eOperandType eOp)
-{
-	switch (eOp) {
-		case eOperandType::e_int8:
-			return 0;
-		case eOperandType::e_int16:
-			return 1;
-		case eOperandType::e_int32:
-			return 2;
-		case eOperandType::e_float:
-			return 3;
-		case eOperandType::e_double:
-			return 4;
-		case eOperandType::e_invalid:
-			return 5;
-	}
-	return 5;
-}
-
-eOperandType				instructions::ConvertPrecisionToType(int eOp)
-{
-	switch (eOp) {
-		case 0:
-			return eOperandType::e_int8;
-		case 1:
-			return eOperandType::e_int16;
-		case 2:
-			return eOperandType::e_int32;
-		case 3:
-			return eOperandType::e_float;
-		case 4:
-			return eOperandType::e_double;
-		default :
-			return eOperandType::e_invalid;
-	}
-}
-
-std::string					instructions::getLine(void) const { return _line; }
-int							instructions::getLineNumber(void) const { return _lineNumber; }
-bool						instructions::getExit(void) const { return _exit; }
-bool						instructions::getValid(void) const { return _valid; }
-std::string					instructions::getError(void) const { return _error; }
-std::string					instructions::getOut(void) const { return _out; }
-std::string					instructions::getAction(void) const { return _action; }
-std::string					instructions::getStype(void) const { return _stype; }
-eOperandType				instructions::getType(void) const { return _type; }
-int							instructions::getPrecision(void) const { return _precision; }		
-std::string					instructions::getSvalue(void) const { return _svalue; }
-int							instructions::getIvalue(void) const { return _ivalue; }
-float						instructions::getFvalue(void) const { return _fvalue; }
-double						instructions::getDvalue(void) const { return _dvalue; }
-instructions::action_map	instructions::getM(void) const { return _m; }
+std::string					instructions::getLine(void) const { return this->_line; }
+int							instructions::getLineNumber(void) const { return this->_lineNumber; }
+bool						instructions::getExit(void) const { return this->_exit; }
+bool						instructions::getValid(void) const { return this->_valid; }
+eErrorType					instructions::geteErrorType(void) const { return this->_etype; }
+std::string					instructions::getOut(void) const { return this->_out; }
+std::string					instructions::getAction(void) const { return this->_action; }
+eOperandType				instructions::getType(void) const { return this->_type; }
+std::string					instructions::getSvalue(void) const { return this->_svalue; }
+instructions::action_map	instructions::getM(void) const { return this->_m; }
 
 void						instructions::setActionsMap(void)
 {
-	_m.insert(std::make_pair("push", &instructions::ActionPush));
-	_m.insert(std::make_pair("pop", &instructions::ActionPop));
-	_m.insert(std::make_pair("dump", &instructions::ActionDump));
-	_m.insert(std::make_pair("assert", &instructions::ActionAssert));
-	_m.insert(std::make_pair("add", &instructions::ActionAdd));
-	_m.insert(std::make_pair("sub", &instructions::ActionSub));
-	_m.insert(std::make_pair("mul", &instructions::ActionMul));
-	_m.insert(std::make_pair("div", &instructions::ActionDiv));
-	_m.insert(std::make_pair("mod", &instructions::ActionMod));
-	_m.insert(std::make_pair("print", &instructions::ActionPrint));
-	_m.insert(std::make_pair("exit", &instructions::ActionExit));
+	this->_m.insert(std::make_pair("push", &instructions::ActionPush));
+	this->_m.insert(std::make_pair("pop", &instructions::ActionPop));
+	this->_m.insert(std::make_pair("dump", &instructions::ActionDump));
+	this->_m.insert(std::make_pair("assert", &instructions::ActionAssert));
+	this->_m.insert(std::make_pair("add", &instructions::ActionAdd));
+	this->_m.insert(std::make_pair("sub", &instructions::ActionSub));
+	this->_m.insert(std::make_pair("mul", &instructions::ActionMul));
+	this->_m.insert(std::make_pair("div", &instructions::ActionDiv));
+	this->_m.insert(std::make_pair("mod", &instructions::ActionMod));
+	this->_m.insert(std::make_pair("print", &instructions::ActionPrint));
+	this->_m.insert(std::make_pair("exit", &instructions::ActionExit));
 }
 
 bool						instructions::setTypes(std::string str)
@@ -258,9 +207,8 @@ bool						instructions::setTypes(std::string str)
 		|| str.compare("float") == 0
 		|| str.compare("double") == 0)
 	{
-		_stype = str;
-		_type = ConvertStringToType(str);
-		_precision = ConvertTypeToPrecision(_type);
+		this->_stype = str;
+		this->_type = ConvertStringToType(str);
 		return true;
 	}
 	return false;
@@ -273,7 +221,7 @@ bool						instructions::setValues(std::string str)
 	trim(str);
 	if (str.size() == 0) return false;
 
-	if (_stype.compare("float") == 0 || _stype.compare("double") == 0)
+	if (this->_stype.compare("float") == 0 || this->_stype.compare("double") == 0)
 	{
 		for (size_t i = 0; i < str.length(); ++i)
 		{
@@ -294,7 +242,7 @@ bool						instructions::setValues(std::string str)
 			if (!isdigit(str[i])) return false;
 		}
 	}
-	_svalue = str;
+	this->_svalue = str;
 	return true;
 }
 
@@ -311,9 +259,9 @@ bool						instructions::setValues(std::string str)
 */
 void						instructions::ActionPush(std::vector<IOperand const *> v)
 {
-	_currentStack = v;
-	// _currentStack.push_back(Factory::createOperand(getType(), getSvalue()));
-	// isinlimits(_currentStack);
+	this->_currentStack = v;
+	Factory f;
+	this->_currentStack.push_back(f.createOperand(this->getType(), this->getSvalue()));
 	return ;
 }
 
@@ -323,12 +271,12 @@ void						instructions::ActionPush(std::vector<IOperand const *> v)
 */
 void						instructions::ActionPop(std::vector<IOperand const *> v)
 {
-	_currentStack = v;
+	this->_currentStack = v;
 	if (v.size() > 0)
-		_currentStack.pop_back();
+		this->_currentStack.pop_back();
 	else {
-		_error = "Line " + std::to_string(_lineNumber) + ": Error : Instruction pop on an empty stack";
-		_valid = false;
+		throw EmptyError();
+		this->_valid = false;
 	}
 	return ;
 }
@@ -339,10 +287,10 @@ void						instructions::ActionPop(std::vector<IOperand const *> v)
 */
 void						instructions::ActionDump(std::vector<IOperand const *> v)
 {
-	_currentStack = v;
+	this->_currentStack = v;
 	while (v.size() > 0)
 	{
-		_out = v.back()->toString() + "\n" + _out;
+		this->_out = v.back()->toString() + "\n" + this->_out;
 		v.pop_back();
 	}
 	return ;
@@ -355,12 +303,14 @@ void						instructions::ActionDump(std::vector<IOperand const *> v)
 */
 void						instructions::ActionAssert(std::vector<IOperand const *> v)
 {
-	_currentStack = v;
-	if (v.back()->toString() == getSvalue())
-;		// _currentStack.push_back(createOperand(getType(), getSvalue()));
+	this->_currentStack = v;
+	Factory f;
+	auto val = f.createOperand(this->getType(), this->getSvalue());
+	if ((v.back()->getType() == val->getType()) && (v.back()->toString() == val->toString()))
+		this->_currentStack.push_back(val);
 	else {
-		_valid = false;
-		_error = "Line " + std::to_string(_lineNumber) + ": Error : An assert instruction is not true";
+		throw AssertError();
+		this->_valid = false;
 		return ;
 	}
 	return ;
@@ -372,15 +322,15 @@ void						instructions::ActionAssert(std::vector<IOperand const *> v)
 */
 void						instructions::ActionAdd(std::vector<IOperand const *> v)
 {
-	_currentStack = v;
+	this->_currentStack = v;
 	if (isStackEnought(v))
 	{
 		auto i = v.rbegin()[0];
 		auto j = v.rbegin()[1];
 
-		_currentStack.pop_back();
-		_currentStack.pop_back();
-		_currentStack.push_back(*i + *j);
+		this->_currentStack.pop_back();
+		this->_currentStack.pop_back();
+		this->_currentStack.push_back(*i + *j);
 	}
 	return ;
 }
@@ -390,15 +340,15 @@ void						instructions::ActionAdd(std::vector<IOperand const *> v)
 */
 void						instructions::ActionSub(std::vector<IOperand const *> v)
 {
-	_currentStack = v;
+	this->_currentStack = v;
 	if (isStackEnought(v))
 	{
 		auto i = v.rbegin()[0];
 		auto j = v.rbegin()[1];
 		
-		_currentStack.pop_back();
-		_currentStack.pop_back();
-		_currentStack.push_back(*j - *i);
+		this->_currentStack.pop_back();
+		this->_currentStack.pop_back();
+		this->_currentStack.push_back(*j - *i);
 	}
 	return ;
 }
@@ -409,15 +359,15 @@ void						instructions::ActionSub(std::vector<IOperand const *> v)
 */
 void						instructions::ActionMul(std::vector<IOperand const *> v)
 {
-	_currentStack = v;
+	this->_currentStack = v;
 	if (isStackEnought(v))
 	{
 		auto i = v.rbegin()[0];
 		auto j = v.rbegin()[1];
 
-		_currentStack.pop_back();
-		_currentStack.pop_back();
-		_currentStack.push_back(*j * *i);
+		this->_currentStack.pop_back();
+		this->_currentStack.pop_back();
+		this->_currentStack.push_back(*j * *i);
 	}
 	return ;
 }
@@ -432,15 +382,15 @@ void						instructions::ActionMul(std::vector<IOperand const *> v)
 */
 void						instructions::ActionDiv(std::vector<IOperand const *> v)
 {
-	_currentStack = v;
+	this->_currentStack = v;
 	if (isStackEnought(v))
 	{
 		auto i = v.rbegin()[0];
 		auto j = v.rbegin()[1];
 
-		_currentStack.pop_back();
-		_currentStack.pop_back();
-		_currentStack.push_back(*j / *i);
+		this->_currentStack.pop_back();
+		this->_currentStack.pop_back();
+		this->_currentStack.push_back(*j / *i);
 	}
 	return ;
 }
@@ -453,15 +403,15 @@ void						instructions::ActionDiv(std::vector<IOperand const *> v)
 */
 void						instructions::ActionMod(std::vector<IOperand const *> v)
 {
-	_currentStack = v;
+	this->_currentStack = v;
 	if (isStackEnought(v))
 	{
 		auto i = v.rbegin()[0];
 		auto j = v.rbegin()[1];
 
-		_currentStack.pop_back();
-		_currentStack.pop_back();
-		_currentStack.push_back(*j % *i);
+		this->_currentStack.pop_back();
+		this->_currentStack.pop_back();
+		this->_currentStack.push_back(*j % *i);
 	}
 	return ;
 }
@@ -473,13 +423,11 @@ void						instructions::ActionMod(std::vector<IOperand const *> v)
 */
 void						instructions::ActionPrint(std::vector<IOperand const *> v)
 {
-	_currentStack = v;
-	if (_currentStack.back()->getType() == eOperandType::e_int8)
+	this->_currentStack = v;
+	if (this->_currentStack.back()->getType() == eOperandType::e_int8)
 	{
-		const Num<int> *tmp = static_cast<const Num<int> * >(_currentStack.back());
-
+		const Num<int8_t> *tmp = static_cast<const Num<int8_t> * >(this->_currentStack.back());
 		std::cout << tmp->getValue();
-		// _out = t;
 	}
 	return ;
 }
@@ -491,12 +439,6 @@ void						instructions::ActionPrint(std::vector<IOperand const *> v)
 */
 void						instructions::ActionExit(std::vector<IOperand const *> v)
 {
-	_currentStack = v;
+	this->_currentStack = v;
 	return ;
 }
-
-
-
-
-
-
