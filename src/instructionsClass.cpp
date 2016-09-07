@@ -428,6 +428,9 @@ void						instructions::ActionPrint(std::vector<IOperand const *> v)
 	{
 		const Num<int8_t> *tmp = static_cast<const Num<int8_t> * >(this->_currentStack.back());
 		std::cout << tmp->getValue();
+	} else {
+		this->_valid = false;
+		throw AssertError();
 	}
 	return ;
 }

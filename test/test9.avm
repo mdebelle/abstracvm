@@ -1,0 +1,27 @@
+push int32(33)
+push float(5.5)
+add
+dump
+push int8(33) ;!
+push int8(112) ;p
+push int8(111) ;o
+push int8(108) ;l
+push int8(112) ;p
+print
+pop
+print
+pop
+print
+pop
+print
+pop
+print
+pop
+push int32(42)
+;assert int32(0)
+push double(90.90)
+pop
+dump
+print 
+exit
+;;

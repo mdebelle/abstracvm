@@ -17,7 +17,10 @@
 #include "NumClass.hpp"
 #include "error.hpp"
 
-void							exitlexicalerror(eErrorType error)
+/*
+*	throw errors
+*/
+void								exitlexicalerror(eErrorType error)
 {
 	switch (error){
 		case eErrorType::e_lexical: throw LexicalError();
@@ -28,9 +31,12 @@ void							exitlexicalerror(eErrorType error)
 	}
 }
 
-void							launchexec(std::vector<instructions> v)
+/*
+ * Execute parsed command
+*/
+void								launchexec(std::vector<instructions> v)
 {
-	std::vector<IOperand const *> 			vOperand;
+	std::vector<IOperand const *>	vOperand;
 
 	for (std::vector<instructions>::iterator i = v.begin(); i != v.end(); ++i)
 	{
@@ -43,17 +49,18 @@ void							launchexec(std::vector<instructions> v)
 			}
 		} catch (std::exception & e) {
 			std::cerr << "Line: " << i->getLineNumber() << ": " << e.what();
+			return;
 		}
 	}
 }
 
-void							fileArgument(char **argv)
+void								fileArgument(char **argv)
 {
-	int							count = 0;
-	std::string					line;
-	std::string					filename(argv[1]);
-	std::ifstream				avmfile(filename);
-	std::vector<instructions>	v;
+	int								count = 0;
+	std::string						line;
+	std::string						filename(argv[1]);
+	std::ifstream					avmfile(filename);
+	std::vector<instructions>		v;
 
 	if (avmfile.is_open())
 	{
@@ -62,12 +69,12 @@ void							fileArgument(char **argv)
 				count++;
 				v.push_back(instructions(line, count));
 			}
-	}		
+	}
 	launchexec(v);
 	return ;
 }
 
-int		main(int argc, char **argv)
+int									main(int argc, char **argv)
 {
 	if (argc > 1) fileArgument(argv);
 	else
@@ -79,11 +86,8 @@ int		main(int argc, char **argv)
 		while (42)
 		{
 			char					line[1024];
-			
 			std::cin.getline(line, 1024);
-
 			std::string				str(line);
-
 			count++;
 			v.push_back(instructions(str, count));
 			if (v.back().getExit()) exit = true;
